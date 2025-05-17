@@ -1,71 +1,99 @@
 # Go Tasks CLI
 
-A lightweight and intuitive command-line task manager written in Go.  
-Easily manage your daily tasks locally with simple commands to add, list, remove, and mark tasks as done.
+A simple command-line task manager written in Go.
 
----
+## Features
 
-## ✨ Features
+- Add, list, and remove tasks
+- Mark tasks as done and undo them
+- Clear all tasks or only done tasks
+- Color-coded output for better readability:
+  - Done tasks and their checkmarks appear in green
+  - Pending tasks appear in white
+  - Success messages in cyan
+  - Errors and warnings in red
 
-- **Add tasks** with custom descriptions
-- **List** all tasks with their status (pending/done)
-- **Remove** tasks by their number
-- **Mark** tasks as done
+## Installation
 
----
+Make sure you have Go installed. Then, clone this repository and install dependencies:
 
-## 🚀 Requirements
+```bash
+git clone <your-repo-url>
+cd <your-repo-folder>
+go get github.com/fatih/color
+```
 
-- Go **1.18** or higher installed
+## Usage
 
----
+Run commands using:
 
-## ⚡ Installation
+```bash
+go run main.go [command] [arguments]
+```
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/your-username/go-tasks-cli.git
-   cd go-tasks-cli
-   ```
+### Commands
 
-2. **Build the executable (optional):**
-   ```bash
-   go build -o go-tasks
-   ```
+| Command                | Description                      |
+|------------------------|----------------------------------|
+| `add <task description>` | Add a new task                   |
+| `list`                 | List all tasks                   |
+| `remove <task number>` | Remove a task                    |
+| `done <task number>`   | Mark a task as done              |
+| `undo <task number>`   | Unmark a task as done            |
+| `clear [done]`         | Clear all tasks or only done tasks|
+| `help`                 | Show this help message           |
 
-3. **Or run directly without building:**
-   ```bash
-   go run main.go <command> [arguments]
-   ```
+### Examples
 
----
-
-## 🛠️ Usage
+Add a task:
 
 ```bash
 go run main.go add "Buy groceries"
+```
+
+List tasks:
+
+```bash
 go run main.go list
+```
+
+Mark task #1 as done:
+
+```bash
 go run main.go done 1
+```
+
+Undo done on task #1:
+
+```bash
+go run main.go undo 1
+```
+
+Remove task #1:
+
+```bash
 go run main.go remove 1
 ```
 
-### Available Commands
+Clear all done tasks:
 
-| Command | Description                     |
-|---------|---------------------------------|
-| `add`   | Add a new task                  |
-| `list`  | List all tasks                  |
-| `done`  | Mark a task as done by its number |
-| `remove`| Remove a task by its number     |
+```bash
+go run main.go clear done
+```
 
----
+Clear all tasks:
 
-## 💾 Data Storage
+```bash
+go run main.go clear
+```
 
-Tasks are stored locally in a JSON file named `tasks.json`.  
-This file is automatically created and updated as you manage your tasks.
+Show help:
 
----
+```bash
+go run main.go help
+```
 
+## File Storage
 
-Enjoy productive task management from the comfort of your terminal!
+Tasks are stored locally in a JSON file named `tasks.json` in the same directory as the program.
+
