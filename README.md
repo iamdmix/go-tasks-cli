@@ -18,8 +18,8 @@ A simple command-line task manager written in Go.
 Make sure you have Go installed. Then, clone this repository and install dependencies:
 
 ```bash
-git clone <your-repo-url>
-cd <your-repo-folder>
+git clone https://github.com/iamdmix/go-tasks-cli.git
+cd go-tasks-cli
 go get github.com/fatih/color
 ```
 
@@ -33,15 +33,15 @@ go run main.go [command] [arguments]
 
 ### Commands
 
-| Command                | Description                      |
-|------------------------|----------------------------------|
-| `add <task description>` | Add a new task                   |
-| `list`                 | List all tasks                   |
-| `remove <task number>` | Remove a task                    |
-| `done <task number>`   | Mark a task as done              |
-| `undo <task number>`   | Unmark a task as done            |
-| `clear [done]`         | Clear all tasks or only done tasks|
-| `help`                 | Show this help message           |
+| Command                  | Description                          |
+|--------------------------|--------------------------------------|
+| `add <task description>` | Add a new task                       |
+| `list`                   | List all tasks                       |
+| `remove <task number>`   | Remove a task                        |
+| `done <task number>`     | Mark a task as done                  |
+| `undo <task number>`     | Unmark a task as done                |
+| `clear [done]`           | Clear all tasks or only done tasks   |
+| `help`                   | Show this help message               |
 
 ### Examples
 
@@ -96,4 +96,3 @@ go run main.go help
 ## File Storage
 
 Tasks are stored locally in a JSON file named `tasks.json` in the same directory as the program.
-
