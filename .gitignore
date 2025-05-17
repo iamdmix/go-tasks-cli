@@ -1,0 +1,15 @@
+# Binaries
+/go-tasks-cli
+*.exe
+*.out
+
+# Editor settings
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+
+# Task data
+tasks.json
