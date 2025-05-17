@@ -109,6 +109,68 @@ func markDone(args []string){
 	fmt.Println("Marked task as done:",tasks[index-1].Description)
 }
 
+func undoDone(args []string) {
+	if len(args) == 0 {
+		fmt.Println("Please provide task number to unmark as done.")
+		return
+	}
+	index, err := strconv.Atoi(args[0])
+	if err != nil || index < 1 {
+		fmt.Println("Invalid task number")
+		return
+	}
+
+	tasks := loadTasks()
+
+	if index > len(tasks) {
+		fmt.Println("Task number out of range.")
+		return
+	}
+
+	tasks[index-1].Done = false
+	saveTasks(tasks)
+	fmt.Println("Unmarked task as done:", tasks[index-1].Description)
+}
+
+
+func clearTasks(args []string) {
+	tasks := loadTasks()
+	if len(tasks) == 0 {
+		fmt.Println("No tasks to clear.")
+		return
+	}
+
+	if len(args) > 0 && args[0] == "done" {
+		// Clear only done tasks
+		var activeTasks []Task
+		for _, t := range tasks {
+			if !t.Done {
+				activeTasks = append(activeTasks, t)
+			}
+		}
+		saveTasks(activeTasks)
+		fmt.Println("Cleared all done tasks.")
+	} else {
+		// Clear all tasks
+		saveTasks([]Task{})
+		fmt.Println("Cleared all tasks.")
+	}
+}
+
+
+func printHelp() {
+	fmt.Println(`Usage: go run main.go [command] [arguments]
+
+Commands:
+  add <task description>    Add a new task
+  list                      List all tasks
+  remove <task number>      Remove a task
+  done <task number>        Mark a task as done
+  undo <task number>        Unmark a task as done
+  clear [done]              Clear all tasks or only done tasks
+  help                      Show this help message
+`)
+}
 
 func main(){
 	if len(os.Args) < 2{
@@ -127,7 +189,14 @@ func main(){
 		removeTask(os.Args[2:])
 	case "done":
 		markDone(os.Args[2:])
+	case "undo":
+		undoDone(os.Args[2:])
+	case "clear":
+		clearTasks(os.Args[2:])
+	case "help":
+		printHelp()
 	default:
 		fmt.Println("Unknown Command: ", command)
+		printHelp()
 	}
 }
