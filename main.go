@@ -7,11 +7,15 @@ import(
 	"io/ioutil"
 	"strings"
 	"strconv"
+
+	"github.com/fatih/color"
 )
-type Task struct{
+
+type Task struct {
 	Description string `json:"description"`
-	Done bool `json:"done"`
+	Done        bool   `json:"done"`
 }
+
 const taskFile = "tasks.json"
 
 func loadTasks() []Task {
@@ -19,124 +23,129 @@ func loadTasks() []Task {
 
 	data, err := ioutil.ReadFile(taskFile)
 	if err == nil {
-		json.Unmarshal(data,&tasks)
+		json.Unmarshal(data, &tasks)
 	}
 	return tasks
 }
 
-func saveTasks(tasks []Task){
-	data, _ := json.MarshalIndent(tasks,""," ")
-	_ = ioutil.WriteFile(taskFile, data, 0644) 
+func saveTasks(tasks []Task) {
+	data, _ := json.MarshalIndent(tasks, "", "  ")
+	_ = ioutil.WriteFile(taskFile, data, 0644)
 }
 
-func addTask(args []string){
-	if len(args) ==0 {
-		fmt.Println("Task description missing")
-		return 
-	}
-	description := strings.Join(args," ")
-	tasks := loadTasks()
-	tasks = append(tasks, Task{Description: description, Done:false})
-	saveTasks(tasks)
-	fmt.Println("Added task:",description)
-}
-
-func listTasks(){
-	tasks:= loadTasks()
-
-	if len(tasks) == 0 {
-		fmt.Println("No tasks found.")
+func addTask(args []string) {
+	if len(args) == 0 {
+		color.Red("Task description missing")
 		return
 	}
+	description := strings.Join(args, " ")
+	tasks := loadTasks()
+	tasks = append(tasks, Task{Description: description, Done: false})
+	saveTasks(tasks)
+	color.Cyan("Added task: %s", description)
+}
+
+func listTasks() {
+	tasks := loadTasks()
+
+	if len(tasks) == 0 {
+		color.Yellow("No tasks found.")
+		return
+	}
+
+	green := color.New(color.FgGreen).SprintFunc()
+	white := color.New(color.FgWhite).SprintFunc()
+
 	for i, task := range tasks {
 		status := " "
 		if task.Done {
-			status="x"
+			status = "x"
+			fmt.Printf("%d. [%s] %s\n", i+1, green(status), green(task.Description))
+		} else {
+			fmt.Printf("%d. [%s] %s\n", i+1, white(status), white(task.Description))
 		}
-		fmt.Printf("%d. [%s] %s\n",i+1, status, task.Description)
 	}
 }
 
 func removeTask(args []string) {
 	if len(args) == 0 {
-		fmt.Println("Please provide task number to remove.")
+		color.Red("Please provide task number to remove.")
 		return
 	}
 	index, err := strconv.Atoi(args[0])
 	if err != nil || index < 1 {
-		fmt.Println("Invalid task number")
+		color.Red("Invalid task number")
 		return
 	}
 
 	tasks := loadTasks()
 
 	if index > len(tasks) {
-		fmt.Println("Task number out of range. ")
+		color.Red("Task number out of range.")
 		return
 	}
 
 	removed := tasks[index-1].Description
 	tasks = append(tasks[:index-1], tasks[index:]...)
 	saveTasks(tasks)
-	fmt.Println("Removed task:",removed)
+	color.Cyan("Removed task: %s", removed)
 }
 
-func markDone(args []string){
-	if len(args) == 0{
-		fmt.Println("Please provide a task number to mark as done. ")
-		return
-	}
-	index, err := strconv.Atoi(args[0])
-	if err != nil || index < 1 {
-		fmt.Println("Invalid task number.")
-		return
-	}
-
-	tasks := loadTasks()
-
-	if index> len(tasks){
-		fmt.Println("Task number out of range.")
-		return
-	}
-
-	if tasks[index-1].Done {
-		fmt.Println("Task is already marked as done.")
-		return
-	}
-
-	tasks[index-1].Done = true
-	saveTasks(tasks)
-	fmt.Println("Marked task as done:",tasks[index-1].Description)
-}
-
-func undoDone(args []string) {
+func markDone(args []string) {
 	if len(args) == 0 {
-		fmt.Println("Please provide task number to unmark as done.")
+		color.Red("Please provide a task number to mark as done.")
 		return
 	}
 	index, err := strconv.Atoi(args[0])
 	if err != nil || index < 1 {
-		fmt.Println("Invalid task number")
+		color.Red("Invalid task number.")
 		return
 	}
 
 	tasks := loadTasks()
 
 	if index > len(tasks) {
-		fmt.Println("Task number out of range.")
+		color.Red("Task number out of range.")
+		return
+	}
+
+	if tasks[index-1].Done {
+		color.Yellow("Task is already marked as done.")
+		return
+	}
+
+	tasks[index-1].Done = true
+	saveTasks(tasks)
+	color.Cyan("Marked task as done: %s", tasks[index-1].Description)
+}
+
+func undoDone(args []string) {
+	if len(args) == 0 {
+		color.Red("Please provide task number to unmark as done.")
+		return
+	}
+	index, err := strconv.Atoi(args[0])
+	if err != nil || index < 1 {
+		color.Red("Invalid task number")
+		return
+	}
+
+	tasks := loadTasks()
+
+	if index > len(tasks) {
+		color.Red("Task number out of range.")
 		return
 	}
 
 	tasks[index-1].Done = false
 	saveTasks(tasks)
-	fmt.Println("Unmarked task as done:", tasks[index-1].Description)
+	color.Cyan("Unmarked task as done: %s", tasks[index-1].Description)
 }
-
 
 func clearTasks(args []string) {
 	tasks := loadTasks()
 	if len(tasks) == 0 {
-		fmt.Println("No tasks to clear.")
+		color.Yellow("No tasks to clear.")
 		return
 	}
 
@@ -149,14 +158,13 @@ func clearTasks(args []string) {
 			}
 		}
 		saveTasks(activeTasks)
-		fmt.Println("Cleared all done tasks.")
+		color.Cyan("Cleared all done tasks.")
 	} else {
 		// Clear all tasks
 		saveTasks([]Task{})
-		fmt.Println("Cleared all tasks.")
+		color.Cyan("Cleared all tasks.")
 	}
 }
-
 
 func printHelp() {
 	fmt.Println(`Usage: go run main.go [command] [arguments]
@@ -172,15 +180,15 @@ Commands:
 `)
 }
 
-func main(){
-	if len(os.Args) < 2{
-		fmt.Println("Usage: go run main.go [add|list|remove|done] <tasks>")
+func main() {
+	if len(os.Args) < 2 {
+		color.Red("Usage: go run main.go [add|list|remove|done|undo|clear|help] <tasks>")
 		return
 	}
 
 	command := os.Args[1]
 
-	switch command{
+	switch command {
 	case "add":
 		addTask(os.Args[2:])
 	case "list":
@@ -196,7 +204,7 @@ func main(){
 	case "help":
 		printHelp()
 	default:
-		fmt.Println("Unknown Command: ", command)
+		color.Red("Unknown Command: %s", command)
 		printHelp()
 	}
 }
