@@ -81,9 +81,38 @@ func removeTask(args []string) {
 	fmt.Println("Removed task:",removed)
 }
 
+func markDone(args []string){
+	if len(args) == 0{
+		fmt.Println("Please provide a task number to mark as done. ")
+		return
+	}
+	index, err := strconv.Atoi(args[0])
+	if err != nil || index < 1 {
+		fmt.Println("Invalid task number.")
+		return
+	}
+
+	tasks := loadTasks()
+
+	if index> len(tasks){
+		fmt.Println("Task number out of range.")
+		return
+	}
+
+	if tasks[index-1].Done {
+		fmt.Println("Task is already marked as done.")
+		return
+	}
+
+	tasks[index-1].Done = true
+	saveTasks(tasks)
+	fmt.Println("Marked task as done:",tasks[index-1].Description)
+}
+
+
 func main(){
 	if len(os.Args) < 2{
-		fmt.Println("Usage: go run main.go [add|list|remove] <tasks>")
+		fmt.Println("Usage: go run main.go [add|list|remove|done] <tasks>")
 		return
 	}
 
@@ -96,6 +125,8 @@ func main(){
 		listTasks()
 	case "remove":
 		removeTask(os.Args[2:])
+	case "done":
+		markDone(os.Args[2:])
 	default:
 		fmt.Println("Unknown Command: ", command)
 	}
