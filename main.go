@@ -14,22 +14,25 @@ import (
 )
 
 type Task struct {
-	Description string    `json:"description"`
+	Description string    `json:"description"` // JSON key for encoding/decoding
 	Done        bool      `json:"done"`
 	CreatedAt   time.Time `json:"created_at"`
 }
 
+// Filename where tasks are stored as JSON
 const taskFile = "tasks.json"
 
 func loadTasks() []Task {
 	var tasks []Task
 	data, err := os.ReadFile(taskFile)
 	if err == nil {
+		// Parse JSON data into tasks slice
 		json.Unmarshal(data, &tasks)
 	}
 	return tasks
 }
 
+// Saves the tasks slice to a JSON file with indentation
 func saveTasks(tasks []Task) {
 	data, _ := json.MarshalIndent(tasks, "", "  ")
 	_ = os.WriteFile(taskFile, data, 0644)
@@ -60,7 +63,7 @@ func listTasks() {
 
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 
-	// Header
+	// Table header
 	fmt.Fprintln(w, "ID\tTask\tCreated\tDone")
 
 	for i, task := range tasks {
@@ -72,16 +75,15 @@ func listTasks() {
 		fmt.Fprintf(w, "%d\t%s\t%s\t%s\n", i+1, task.Description, created, done)
 	}
 
-	w.Flush()
+	w.Flush() // Output the formatted table
 }
-
 
 func removeTask(args []string) {
 	if len(args) == 0 {
 		color.Red("Please provide task number to remove.")
 		return
 	}
-	index, err := strconv.Atoi(args[0])
+	index, err := strconv.Atoi(args[0]) // Convert string to int
 	if err != nil || index < 1 {
 		color.Red("Invalid task number")
 		return
@@ -92,6 +94,7 @@ func removeTask(args []string) {
 		return
 	}
 	removed := tasks[index-1].Description
+	// Remove the task from the slice
 	tasks = append(tasks[:index-1], tasks[index:]...)
 	saveTasks(tasks)
 	color.Cyan("Removed task: %s", removed)
