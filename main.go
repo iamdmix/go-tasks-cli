@@ -1,27 +1,29 @@
 package main
 
-import(
+import (
+	"encoding/json"
 	"fmt"
 	"os"
-	"encoding/json"
-	"io/ioutil"
-	"strings"
 	"strconv"
+	"strings"
+	"time"
+	"text/tabwriter"
 
+	"github.com/dustin/go-humanize"
 	"github.com/fatih/color"
 )
 
 type Task struct {
-	Description string `json:"description"`
-	Done        bool   `json:"done"`
+	Description string    `json:"description"`
+	Done        bool      `json:"done"`
+	CreatedAt   time.Time `json:"created_at"`
 }
 
 const taskFile = "tasks.json"
 
 func loadTasks() []Task {
 	var tasks []Task
-
-	data, err := ioutil.ReadFile(taskFile)
+	data, err := os.ReadFile(taskFile)
 	if err == nil {
 		json.Unmarshal(data, &tasks)
 	}
@@ -30,7 +32,7 @@ func loadTasks() []Task {
 
 func saveTasks(tasks []Task) {
 	data, _ := json.MarshalIndent(tasks, "", "  ")
-	_ = ioutil.WriteFile(taskFile, data, 0644)
+	_ = os.WriteFile(taskFile, data, 0644)
 }
 
 func addTask(args []string) {
@@ -40,32 +42,39 @@ func addTask(args []string) {
 	}
 	description := strings.Join(args, " ")
 	tasks := loadTasks()
-	tasks = append(tasks, Task{Description: description, Done: false})
+	tasks = append(tasks, Task{
+		Description: description,
+		Done:        false,
+		CreatedAt:   time.Now(),
+	})
 	saveTasks(tasks)
 	color.Cyan("Added task: %s", description)
 }
 
 func listTasks() {
 	tasks := loadTasks()
-
 	if len(tasks) == 0 {
 		color.Yellow("No tasks found.")
 		return
 	}
 
-	green := color.New(color.FgGreen).SprintFunc()
-	white := color.New(color.FgWhite).SprintFunc()
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+
+	// Header
+	fmt.Fprintln(w, "ID\tTask\tCreated\tDone")
 
 	for i, task := range tasks {
-		status := " "
+		created := humanize.Time(task.CreatedAt)
+		done := "false"
 		if task.Done {
-			status = "x"
-			fmt.Printf("%d. [%s] %s\n", i+1, green(status), green(task.Description))
-		} else {
-			fmt.Printf("%d. [%s] %s\n", i+1, white(status), white(task.Description))
+			done = "true"
 		}
+		fmt.Fprintf(w, "%d\t%s\t%s\t%s\n", i+1, task.Description, created, done)
 	}
+
+	w.Flush()
 }
+
 
 func removeTask(args []string) {
 	if len(args) == 0 {
@@ -77,14 +86,11 @@ func removeTask(args []string) {
 		color.Red("Invalid task number")
 		return
 	}
-
 	tasks := loadTasks()
-
 	if index > len(tasks) {
 		color.Red("Task number out of range.")
 		return
 	}
-
 	removed := tasks[index-1].Description
 	tasks = append(tasks[:index-1], tasks[index:]...)
 	saveTasks(tasks)
@@ -101,19 +107,15 @@ func markDone(args []string) {
 		color.Red("Invalid task number.")
 		return
 	}
-
 	tasks := loadTasks()
-
 	if index > len(tasks) {
 		color.Red("Task number out of range.")
 		return
 	}
-
 	if tasks[index-1].Done {
 		color.Yellow("Task is already marked as done.")
 		return
 	}
-
 	tasks[index-1].Done = true
 	saveTasks(tasks)
 	color.Cyan("Marked task as done: %s", tasks[index-1].Description)
@@ -129,14 +131,11 @@ func undoDone(args []string) {
 		color.Red("Invalid task number")
 		return
 	}
-
 	tasks := loadTasks()
-
 	if index > len(tasks) {
 		color.Red("Task number out of range.")
 		return
 	}
-
 	tasks[index-1].Done = false
 	saveTasks(tasks)
 	color.Cyan("Unmarked task as done: %s", tasks[index-1].Description)
@@ -148,19 +147,16 @@ func clearTasks(args []string) {
 		color.Yellow("No tasks to clear.")
 		return
 	}
-
 	if len(args) > 0 && args[0] == "done" {
-		// Clear only done tasks
-		var activeTasks []Task
+		var remaining []Task
 		for _, t := range tasks {
 			if !t.Done {
-				activeTasks = append(activeTasks, t)
+				remaining = append(remaining, t)
 			}
 		}
-		saveTasks(activeTasks)
+		saveTasks(remaining)
 		color.Cyan("Cleared all done tasks.")
 	} else {
-		// Clear all tasks
 		saveTasks([]Task{})
 		color.Cyan("Cleared all tasks.")
 	}
